@@ -1,0 +1,67 @@
+---
+title: "Desafio 3   Kruskall-Wallis"
+author: "Carolyne Brito - 190085720"
+date: "1 de maio de 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(dplyr,rstatix,reshape,PMCMRplus,ggplot2,EnvStats,NSM3,sna)
+```
+
+#1 a)
+
+Foi calculada a distribuição exata de T, sendo H0 verdadeira, na comparação do efeito de 3 tratamentos com n1=2, n2 =2 e n3 =2, para alphas de 0.1, 0.05 e 0.01
+```{r message=FALSE, warning=FALSE, include=FALSE}
+r  <- 3                     # número de grupos
+Nj <- c(2, 2, 2)            # Tamanhos dos grupos
+N  <- sum(Nj)               # N total
+IV <- factor(rep(1:r, Nj))  # fator de agrupamento
+
+nPerms <- min(factorial(N), 720)
+permIdx <- unique(round(runif(nPerms) * (factorial(N)-1)))
+nPerms  <- length(permIdx) #Número de permutações
+H       <- numeric(nPerms)  # vetor que contém as estatísticas T
+
+getH <- function(ranks) {
+  Rj <- tapply(ranks, IV, sum)
+  (12 / (N*(N+1))) * sum((1/Nj) * (Rj-(Nj*(N+1) / 2))^2)
+}
+
+for(i in seq(along=permIdx)) {
+  H[i] <- getH(numperm(N, permIdx[i]-1)) 
+}
+
+T_exato <- function(alpha){
+  quantile(H, probs=1-alpha)
+}
+
+```
+```{r message=FALSE, warning=FALSE}
+T_exato(0.1)
+T_exato(0.05)
+T_exato(0.01)
+```
+
+
+Foi obtido um T exato de 3.714286 para alpha de 0.1 e um T exato de 4.571429 para alphas de 0.05 e 0.01.
+
+#1 b)
+Com as mesmas condições do item anterior, foi criada uma função que determina a distribuição assintótica de T, com 2 graus de liberdade, para alphas de 0.1, 0.05 e 0.01.
+```{r include=FALSE}
+Assint <- function(alpha){
+  qchisq(1-alpha, r-1)
+}
+```
+```{r message=FALSE, warning=FALSE}
+Assint(0.1)
+Assint(0.05)
+Assint(0.01)
+```
+
+
+Foram encontrados os valores de 4.60517 para alpha de 0.1, 5.991465 para alpha de 0.05 e 9.21034 para alpha de 0.01.
+
+#1 c)
+Foi visto que para todos os alphas apresentados, a distribuição de T se manteve inferior ao valor assintótico de T, aproximado pela Qui-Quadrado com r-1 graus de liberdade (logo, neste caso, 2 graus de liberdade). Por mais que tenha sido sempre inferior para esses valores de alpha, os valores são próximos, se distanciando mais quão menor for o alpha.
