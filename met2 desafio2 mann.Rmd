@@ -1,0 +1,168 @@
+---
+title: "Desafio 2"
+author: "Carolyne Brito 190085720"
+date: "23 de abril de 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+pacman::p_load(purrr,ggplot2, dplyr, tidyverse, ggcorrplot, scales, stringr, cowplot, RColorBrewer, xtable, readxl,lubridate, janitor, e1071, moments)
+
+pacman::p_load(devtools, statsr,goftest, nortest, dgof,leaflet,leaflet.extras, BSDA, gridExtra,reshape2)
+```
+
+#a)
+Foi confeccionada uma função que calcula o Valor exato da estatística Ws, dependendo do valor de m, n e do nível de confiança desejado.
+```{r}
+w <- function(z,m,n){
+  (m*(m+n+1)/2) + qnorm(z)*sqrt((n*m*(m+n+1))/12)
+}
+```
+
+##a1)
+Como exemplo da distribuição exata, foram calculados os valores de Ws para os níveis de confiança de: 0.01, 0.05 e 0.1, para m = 4 e n = 3.
+```{r}
+w(0.01,4,3)
+w(0.05,4,3)
+w(0.1,4,3)
+```
+
+##a2)
+Como exemplo da distribuição exata, foram calculados os valores de Ws para os níveis de confiança de: 0.01, 0.05 e 0.1, para m = 3 e  n = 4.
+```{r}
+w(0.01,3,4)
+w(0.05,3,4)
+w(0.1,3,4)
+```
+
+#b)
+Para confecção dos gráficos desejados foram usados diversos os níveis de confiança entre 0.00001 e 0.1, com o fito se observar-se a dinâmica na mudança do valor da Estatística Ws.
+
+##b1)
+Foram usados m = 4 e n = 3.
+
+```{r echo=FALSE}
+a <- c(0:1000,1)
+a <- a/10000
+b <- vector()
+
+for(i in 1:length(a)){
+  b[i] <- w(z=a[i],n=3,m=4)
+}
+es <- data.frame("est" = b, "alpha" = a)
+
+ggplot(es, aes(x=alpha, y=est, group=1)) +
+  geom_line(size=1,colour="black") + 
+  geom_point(colour="#00688B",size=2) +
+  labs(x="Nível de Confiança", y="Estatística Ws") + 
+  theme_bw() +
+  theme(axis.title.y=element_text(colour="black", size=12),
+        axis.title.x = element_text(colour="black", size=12),
+        axis.text = element_text(colour = "black", size=9.5),
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"))
+```
+Vê-se que quanto menor o nível de confiança, menor a Estatistica Ws, valor crítico de rejeição de H0. Percebe-se que Ws varia, nesses níveis de confiança, de 5.48 até 12.374.
+
+##b2)
+Foram usados m = 3 e n = 4.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+a <- c(0:1000,1)
+a <- a/10000
+b <- vector()
+
+for(i in 1:length(a)){
+  b[i] <- w(z=a[i],n=4,m=3)
+}
+es <- data.frame("est" = b, "alpha" = a)
+
+ggplot(es, aes(x=alpha, y=est, group=1)) +
+  geom_line(size=1,colour="black") + 
+  geom_point(colour="#00688B",size=2) +
+  labs(x="Nível de Confiança", y="Estatística Ws") + 
+  theme_bw() +
+  theme(axis.title.y=element_text(colour="black", size=12),
+        axis.title.x = element_text(colour="black", size=12),
+        axis.text = element_text(colour = "black", size=9.5),
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"))
+```
+Já neste gráfico nota-se que Ws varia entre 1.48 até 8.374. Logo, conclui-se que ambos gráficos tem a mesma amplitude.
+
+Ainda, percebe-se que este gráfico possui a mesma disposição do anterior, alterando apenas o valor da estatística Ws no eixo y.
+
+#c)
+```{r}
+u <- function(z,m,n){
+  w(z,m,n) - (m*(m+1))/2
+}
+```
+Foi confeccionada uma função que calcula o Valor exato da estatística U, dependendo do valor da estatística Ws.
+
+Como exemplo da distribuição exata, foram calculados os valores de U para os níveis de confiança de: 0.01, 0.05 e 0.1, para m = 4 e n = 3; m = 4 e n = 3.
+```{r}
+u(0.01,4,3)
+u(0.01,3,4)
+
+u(0.05,4,3)
+u(0.05,3,4)
+
+u(0.1,4,3)
+u(0.1,3,4)
+```
+Vê-se que os valores de U não se modificam caso m e n alternem de valor.
+
+Para ter uma maior noção da distribuição de U, foram confeccionados gráficos com diversos níveis de confiança entre 0.00001 e 0.1.
+
+Primeiro, o gráfico onde m=4 e n=3
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+a <- c(0:1000,1)
+a <- a/10000
+b <- vector()
+
+for(i in 1:length(a)){
+  b[i] <- u(z=a[i],n=3,m=4)
+}
+es <- data.frame("est" = b, "alpha" = a)
+
+ggplot(es, aes(x=alpha, y=est, group=1)) +
+  geom_line(size=1,colour="black") + 
+  geom_point(colour="#00688B",size=2) +
+  labs(x="Nível de Confiança", y="Estatística Ws") + 
+  theme_bw() +
+  theme(axis.title.y=element_text(colour="black", size=12),
+        axis.title.x = element_text(colour="black", size=12),
+        axis.text = element_text(colour = "black", size=9.5),
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"))
+```
+Agora com m=3 e n=4
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+a <- c(0:1000,1)
+a <- a/10000
+b <- vector()
+
+for(i in 1:length(a)){
+  b[i] <- u(z=a[i],n=4,m=3)
+}
+es <- data.frame("est" = b, "alpha" = a)
+
+ggplot(es, aes(x=alpha, y=est, group=1)) +
+  geom_line(size=1,colour="black") + 
+  geom_point(colour="#00688B",size=2) +
+  labs(x="Nível de Confiança", y="Estatística Ws") + 
+  theme_bw() +
+  theme(axis.title.y=element_text(colour="black", size=12),
+        axis.title.x = element_text(colour="black", size=12),
+        axis.text = element_text(colour = "black", size=9.5),
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"))
+```
+Por sabermos que os valores da estatística U não se alteram com a troca dos valores m e n entre si, vê-se que ambos gráficos são iguais. Eles tem sua estatística entre -4.52 e 2.374.
+
+Percebe-se que U tem a mesma distribuição de W assim como a mesma amplitude da estatística para os níveis de confiança estabelecidos e m e n se alternando entre 3 e 4. Entretanto, o gráfico de U se encontra deslocado para baixo quando comparados com os de Ws, por assumir valores negativos de estatística.
